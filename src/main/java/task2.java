@@ -3,6 +3,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
 
+import static java.util.Arrays.fill;
+
 public class task2 {
     static Scanner scanner = new Scanner(System.in);
     public static void main(String[] args) {
@@ -20,24 +22,20 @@ public class task2 {
             int sitfinish = scanner.nextInt() - 1;
             int wayrez[] = new int[mas.length * mas.length];
             int count = 0;
-            for (int i = 0; i < mas.length; i++) {
+            for (int i = 0; i < wayrez.length; i++) {
                 int lk = 0;
                 int pk = 0;
-                int colelement=0;
-                if (i > 1) {
-                    if (mas[i - 1][0] == mas[i][0] && pk > 0) {
-                        lk++;
+
+                if (select(mas, sitstart, sitfinish, pk, 880, lk)) {
+
+                    wayrez[i] = select1(mas, sitstart, sitfinish, pk, 0,lk,120) ;//- mas[sitstart][2];
+                    lk++;
+
+                }else
+                    {
+                        pk++;
+                        lk=0;
                     }
-                } else {
-                    lk = 0;
-                    pk = 0;
-                }
-                if (select(mas, sitstart, sitfinish, 0, 120, lk)) {
-                    for(int j = colelement;j<colelement+3;j++) {
-                        wayrez[j] = select1(mas, sitstart, sitfinish, i, 0, lk) - mas[i][2];
-                    }pk++;
-                    colelement+=3;
-                }
 
             }
             Arrays.sort(wayrez);
@@ -49,24 +47,43 @@ public class task2 {
             }
         }
     }
+    /* Алгоритм Дейкстры за O(V^2) */
+     static public void dijkstra(int start,int[][]graph,int vNum) {
+         int INF = 100000000;
+         boolean[] used = new boolean [vNum]; // массив пометок
+                 int[] dist = new int [vNum]; // массив расстояния. dist[v] = минимальное_расстояние(start, v)
+         fill(dist, INF); // устанаавливаем расстояние до всех вершин INF
+         dist[start] = 0; // для начальной вершины положим 0
+         for (;;) {
+             int v = -1;
+             for (int nv = 0; nv < vNum; nv++) // перебираем вершины
+                 if (!used[nv] && dist[nv] < INF && (v == -1 || dist[v] > dist[nv])) // выбираем самую близкую непомеченную вершину
+                      v = nv;
+                 if (v == -1) break; // ближайшая вершина не найдена
+                  used[v] = true; // помечаем ее
+             for (int nv = 0; nv < vNum; nv++)
+                 if (!used[nv] && graph[v][nv] < INF) // для всех непомеченных смежных
+                     dist[nv] = min(dist[nv], dist[v] + graph[v][nv]); // улучшаем оценку расстояния (релаксация)
+         }
+         }
     static public boolean select(int[][]mas,int sitstart,int sitfin,int num,int prev,int lk){
         boolean rez = false;
         for(int i =num;i<mas.length;i++){
-            if(mas[i][0]==sitstart&&mas[i][1]==sitfin){if(lk>0){lk--;  rez = select(mas,mas[i][1],sitfin,++i,mas[i][0],lk);}else{rez= true; break;}}
-            if(rez== true)break;
-            if(mas[i][0]==sitstart&&mas[i][1]!=prev){
+            if(mas[i][0]==sitstart&&mas[i][1]==sitfin){if(lk>0){lk--; }else{rez= true; break;}}
+            if(rez==true)break;
+            if(mas[i][0]==sitstart&&mas[i][1]!=prev&&mas[i][1]!=sitfin){
                 rez = select(mas,mas[i][1],sitfin,0,mas[i][0],lk);break;
             }
 
         }
         return rez;
     }
-    static public int select1(int[][]mas,int sitstart,int sitfin,int num,int rez,int lk){
+    static public int select1(int[][]mas,int sitstart,int sitfin,int num,int rez,int lk,int prev){
         for(int i =num;i<mas.length;i++){
-            if(mas[i][0]==sitstart&&mas[i][1]==sitfin){if(lk>0){lk--; rez += select1(mas,mas[i][1],sitfin,++i,rez,lk); }else{rez+=mas[i][2] ;break;}}
-            if(mas[i][0]==sitstart){
+            if(mas[i][0]==sitstart&&mas[i][1]==sitfin){if(lk>0){lk--;  }else{rez+=mas[i][2] ;break;}}
+            if(mas[i][0]==sitstart&&mas[i][1]!=sitfin&&mas[i][1]!=prev){
                 rez+=mas[i][2];
-                rez += select1(mas,mas[i][1],sitfin,++i,rez,lk);
+                rez += select1(mas,mas[i][1],sitfin,++i,rez,lk,mas[i][0]);
                 }
         }
         return rez;
